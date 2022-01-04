@@ -4,7 +4,6 @@ from inference import Cifar10Inference
 from models.vi_transformer import VisionTransformer
 from trainer import Trainer
 from utils.config_utils import Config
-from utils.data_utils import load_pretrained
 
 
 def run():
@@ -18,7 +17,6 @@ def run():
                               atten_dropout=cfg.items.atten_dropout, mlp_dropout=cfg.items.mlp_dropout,
                               num_classes=cfg.items.num_classes)
 
-    load_pretrained(model, '/home/dell/PycharmProjects/ViT/finetuning/ViT-B_32.npz')
     model.to(cfg.items.device)
 
     trainer = Trainer("vit_fine_tuning", model, cfg)
@@ -34,6 +32,6 @@ def inference(model_path, img_path):
 if __name__ == '__main__':
     run()
     model_path = '/home/dell/PycharmProjects/ViT/checkpoint/vit_fine_tuning/vit_fine_tuning_chkpt.bin'
-    img_path = '/home/dell/PycharmProjects/ViT/data/demo/car.jpeg'
+    img_path = '/home/dell/PycharmProjects/ViT/data/demo/ship.jpeg'
     inference(model_path, img_path)
 

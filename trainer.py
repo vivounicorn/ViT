@@ -58,7 +58,7 @@ class Trainer(object):
         print("  testing every:\033[31m%d\033[0m steps" % self.config.items.test_epoch)
         print("\033[34m***** End *****\033[0m")
 
-    def load_model(self, is_load=False):
+    def load_model(self, is_load=True):
         """
         loading pretrained model.
         :param is_load: whether load model.

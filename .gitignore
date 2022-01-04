@@ -1,1 +1,7 @@
 /checkpoint/vit_fine_tuning/
+/data/cifar-10-batches-py/
+/data/cifar-10-python.tar.gz
+/finetuning/ViT-B_16.npz
+/finetuning/ViT-B_32.npz
+/logs/vit_fine_tuning/
+/finetuning/vit_fine_tuning/
