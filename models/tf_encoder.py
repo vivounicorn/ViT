@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from models.embeddings import Embeddings
+from models.embeddings import Embeddings, DistillationEmbeddings
 from models.encoder import Encoder
 
 
@@ -22,7 +22,20 @@ class TransformerEncoder(nn.Module):
         return encoded, attention_weights
 
 
-def test():
+class DistillationTransformerEncoder(TransformerEncoder):
+    def __init__(self, num_of_heads, dim_of_model, dim_of_mlp, num_layers,
+                 image_hw, channels=3, patch_size=16,
+                 em_dropout=0.1, atten_dropout=0.1, mlp_dropout=0.1):
+        super().__init__(num_of_heads, dim_of_model, dim_of_mlp, num_layers,
+                         image_hw, channels, patch_size,
+                         em_dropout, atten_dropout, mlp_dropout)
+
+        self.embeddings = DistillationEmbeddings(image_hw, dim_of_model, channels, patch_size, em_dropout)
+        self.transformer_encoder = Encoder(num_of_heads, dim_of_model, dim_of_mlp, num_layers, atten_dropout,
+                                           mlp_dropout)
+
+
+def unit_test():
     trans = TransformerEncoder(12, 768, 3072, 2, (224, 224))
     q = torch.Tensor(32, 3, 224, 224)
     r, _ = trans(q)

@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn
-from models.tf_encoder import TransformerEncoder
+from models.tf_encoder import TransformerEncoder, DistillationTransformerEncoder
 from torch.nn import Linear
 from torchvision import transforms
 from PIL import Image
+
+from utils.func_utils import soft_distillation, hard_distillation
 
 
 class VisionTransformer(nn.Module):
@@ -44,8 +46,8 @@ class VisionTransformer(nn.Module):
         print("  number of block layers:\033[31m%d\033[0m" % self.num_layers)
         print("  height and width of image:", self.image_hw)
         print("  image channels:\033[31m%d\033[0m" % self.channels)
-        print("  size of patches(it can be diveded by image height*width):\033[31m%d\033[0m" % self.patch_size)
-        print("  dropout of embedding layer:\033[31m%f\033[0m" %  self.em_dropout)
+        print("  size of patches(it can be divided by image height*width):\033[31m%d\033[0m" % self.patch_size)
+        print("  dropout of embedding layer:\033[31m%f\033[0m" % self.em_dropout)
         print("  dropout of attention layer:\033[31m%f\033[0m" % self.atten_dropout)
         print("  dropout of mlp:\033[31m%f\033[0m" % self.mlp_dropout)
         print("\033[32m***** End *****\033[0m")
@@ -62,7 +64,52 @@ class VisionTransformer(nn.Module):
             return obj_res, attention_weights
 
 
-def test(img):
+class DistillationVisionTransformer(VisionTransformer):
+    def __init__(self, num_of_heads, dim_of_model, dim_of_mlp, num_layers,
+                 image_hw=(224, 224), channels=3, patch_size=16,
+                 em_dropout=0.1, atten_dropout=0.1, mlp_dropout=0.1, num_classes=10,
+                 teacher=None, is_hard=False, temperature=3.0, balancing=0.1):
+
+        super().__init__(num_of_heads, dim_of_model, dim_of_mlp, num_layers,
+                         image_hw, channels, patch_size,
+                         em_dropout, atten_dropout, mlp_dropout, num_classes)
+
+        self.transformer = DistillationTransformerEncoder(self.num_of_heads, self.dim_of_model, self.dim_of_mlp,
+                                                          self.num_layers,
+                                                          self.image_hw, self.channels, self.patch_size,
+                                                          self.em_dropout, self.atten_dropout, self.mlp_dropout)
+        self.teacher = teacher
+        self.is_hard = is_hard
+        self.temperature = temperature
+        self.balancing = balancing
+
+    def forward(self, x, labels=None):
+        encoded, attention_weights = self.transformer(x)
+        student_logits = self.vit_head(encoded[:, 0])
+        with torch.no_grad():
+            teacher_logits = self.teacher(x)
+
+        if labels is not None:
+            if not self.is_hard:
+                loss = soft_distillation(teacher_logits, student_logits,
+                                         self.temperature, self.balancing, labels, self.num_classes)
+            else:
+                loss = hard_distillation(teacher_logits, student_logits,
+                                         self.balancing, labels, self.num_classes)
+
+            return loss, student_logits
+        else:
+            return student_logits, attention_weights
+
+
+def build_teacher(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution):
+    from torchvision.models import resnet50
+    teacher = resnet50(pretrained=True)
+    vit = DistillationVisionTransformer(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution, teacher=teacher)
+    return vit
+
+
+def unit_test(img, vit_type='vit'):
     resolution = (224, 224)
     num_of_heads = 12
     dim_of_model = 768
@@ -76,7 +123,11 @@ def test(img):
     im = Image.open(img).convert('RGB')
     x = transform(im)
 
-    vit = VisionTransformer(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution)
+    if vit_type == 'vit':
+        vit = VisionTransformer(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution)
+    else:
+        vit = build_teacher(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution)
+
     q = x.reshape(1, 3, 224, 224)
     # attention_matrix is a list.
     result, attention_matrix = vit(q)
@@ -92,3 +143,6 @@ def test(img):
     dis_net.directory = "data"
     # 生成文件
     dis_net.view()
+
+
+# unit_test('/home/dell/PycharmProjects/ViT/data/demo/ship.jpeg','vvv')

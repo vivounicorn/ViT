@@ -28,7 +28,7 @@ class Mlp(nn.Module):
         return x
 
 
-def test():
+def unit_test():
     from mh_attention import MultiHeadAttention
     mha = MultiHeadAttention(12, 768)
 

@@ -35,7 +35,7 @@ class Block(nn.Module):
         return x, weights
 
 
-def test():
+def unit_test():
     b = Block(12, 768, 3072)
     q = torch.Tensor(32, 197, 768)
     output, attention_weights = b(q)

@@ -26,6 +26,7 @@ class Config(object):
         self.items.optimizer = cfg.get('training', 'optimizer')
 
         # modeling configuration
+        self.items.model_type = cfg.get('modeling', 'model_type')
         self.items.num_classes = cfg.getint('modeling', 'num_classes')
         self.items.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.items.num_of_heads = cfg.getint('modeling', 'num_of_heads')
@@ -37,3 +38,9 @@ class Config(object):
         self.items.em_dropout = cfg.getfloat('modeling', 'em_dropout')
         self.items.atten_dropout = cfg.getfloat('modeling', 'atten_dropout')
         self.items.mlp_dropout = cfg.getfloat('modeling', 'mlp_dropout')
+
+        # deit modeling configuration
+        self.items.teacher = cfg.get('deit', 'teacher')
+        self.items.is_hard = cfg.getboolean('deit', 'is_hard')
+        self.items.temperature = cfg.getfloat('deit', 'temperature')
+        self.items.balancing = cfg.getfloat('deit', 'balancing')

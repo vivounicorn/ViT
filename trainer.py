@@ -66,6 +66,8 @@ class Trainer(object):
         """
         if is_load:
             load_path = os.path.join(self.fine_tuning_dir, self.trainer_name)
+            if not os.path.exists(load_path):
+                return False
             name, file = find_newest_model(load_path)
             if name is not None:
                 try:
@@ -110,9 +112,9 @@ class Trainer(object):
         for step, batch in enumerate(epoch_iterator):
             count += 1
             batch = tuple(t.to(self.config.items.device) for t in batch)
-            features, label = batch
+            features, labels = batch
             with torch.no_grad():
-                eval_loss, obj_res = self.model(features, label)
+                eval_loss, obj_res = self.model(features, labels)
                 # 全局平均损失,tensor是标量，用item方法取出
                 loss_sum += eval_loss.item()
                 loss_count += 1
@@ -121,7 +123,7 @@ class Trainer(object):
 
             # 把预测的结果和标注从gpu tensor转换为cpu tensor后再转换为numpy数组.(注：不能直接从gpu tensor转为numpy数组)
             preds_list.append(preds.detach().cpu().numpy())
-            label_list.append(label.detach().cpu().numpy())
+            label_list.append(labels.detach().cpu().numpy())
             epoch_iterator.set_description(
                 "Testing Progress [%d / %d Total Steps] {loss=%2.5f}" % (count, t_total, loss_sum / loss_count))
 
@@ -180,6 +182,7 @@ class Trainer(object):
                              lr_lambda=lambda step: float(step) / warmup_steps if step < warmup_steps else 0.5 * (
                                      math.cos(math.pi * 0.6 * 2.0 * (step - warmup_steps) / (
                                              t_total - warmup_steps)) + 1.0))
+        # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
         print("\r\n***** Running training *****")
 
@@ -205,8 +208,8 @@ class Trainer(object):
                 # 获取一个batch，并把数据发送到相应设备上（如：GPU卡）
                 batch = tuple(t.to(self.config.items.device) for t in batch)
                 # 特征与标注数据
-                features, label = batch
-                loss, _ = self.model(features, label)
+                features, labels = batch
+                loss, _ = self.model(features, labels)
                 # 自动反向传播求梯度
                 loss.backward()
                 # 全局平均损失

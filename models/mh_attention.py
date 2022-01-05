@@ -79,7 +79,7 @@ class MultiHeadAttention(nn.Module):
         return linear_output, attention_weights
 
 
-def test():
+def unit_test():
     # (num_of_heads, dim_of_model)
     mha = MultiHeadAttention(12, 768)
 

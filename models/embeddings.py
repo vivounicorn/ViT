@@ -43,9 +43,31 @@ class Embeddings(nn.Module):
         return embeddings
 
 
-def test():
+class DistillationEmbeddings(Embeddings):
+    def __init__(self, image_hw, dim_of_model, channels=3, patch_size=16, dropout=0.1):
+        super().__init__(image_hw, dim_of_model, channels, patch_size, dropout)
+
+        self.distillation_token = nn.Parameter(torch.zeros(1, 1, dim_of_model))
+
+    def forward(self, x):
+        batch_size = x.shape[0]
+        cls_tokens = self.class_token.expand(batch_size, -1, -1)
+        dis_tokens = self.distillation_token.expand(batch_size, -1, -1)
+
+        x = self.patch_embeddings(x)
+        x = x.flatten(2)
+        x = x.transpose(-1, -2)
+        x = torch.cat((cls_tokens, x), dim=1)
+
+        embeddings = x + self.position_embeddings
+        embeddings = torch.cat((embeddings, dis_tokens), dim=1)
+        embeddings = self.dropout(embeddings)
+        return embeddings
+
+
+def unit_test():
     emb = Embeddings((224, 224), 768)
     q = torch.Tensor(32, 3, 224, 224)
     r = emb(q)
-    print('shape of embedding:"{0}""'.format(r.shape))
+    print('shape of embedding:"{0}""'.format(r.shape)) #[32, 197, 768]
     exit(0)

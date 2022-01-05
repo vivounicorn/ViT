@@ -5,3 +5,9 @@
 /finetuning/ViT-B_32.npz
 /logs/vit_fine_tuning/
 /finetuning/vit_fine_tuning/
+/logs/resnet50/
+/checkpoint/resnet50_ckpt.pth
+/checkpoint/ckpt.pth
+/finetuning/vit_teacher/
+/checkpoint/vit_teacher/
+/logs/vit_teacher/

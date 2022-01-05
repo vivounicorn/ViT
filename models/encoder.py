@@ -24,7 +24,6 @@ class Encoder(nn.Module):
         # 此时输入还正确
         attn_weights_list = []
         for layer_block in self.layers:
-            # print(x, '[][][][][]\n')
             x, weights = layer_block(x)
             attn_weights_list.append(weights)
 
@@ -33,7 +32,7 @@ class Encoder(nn.Module):
         return encoded, attn_weights_list
 
 
-def test():
+def unit_test():
     encoder = Encoder(12, 768, 3072, 1)
     q = torch.Tensor(32, 197, 768)
     output, attention_weights = encoder(q)
