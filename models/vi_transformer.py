@@ -102,13 +102,6 @@ class DistillationVisionTransformer(VisionTransformer):
             return student_logits, attention_weights
 
 
-def build_teacher(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution):
-    from torchvision.models import resnet50
-    teacher = resnet50(pretrained=True)
-    vit = DistillationVisionTransformer(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution, teacher=teacher)
-    return vit
-
-
 def unit_test(img, vit_type='vit'):
     resolution = (224, 224)
     num_of_heads = 12
@@ -126,7 +119,7 @@ def unit_test(img, vit_type='vit'):
     if vit_type == 'vit':
         vit = VisionTransformer(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution)
     else:
-        vit = build_teacher(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution)
+        vit = unit_test_build_teacher(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution)
 
     q = x.reshape(1, 3, 224, 224)
     # attention_matrix is a list.
@@ -144,5 +137,11 @@ def unit_test(img, vit_type='vit'):
     # 生成文件
     dis_net.view()
 
+
+def unit_test_build_teacher(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution):
+    from torchvision.models import resnet50
+    teacher = resnet50(pretrained=True)
+    vit = DistillationVisionTransformer(num_of_heads, dim_of_model, dim_of_mlp, num_layers, resolution, teacher=teacher)
+    return vit
 
 # unit_test('/home/dell/PycharmProjects/ViT/data/demo/ship.jpeg','vvv')

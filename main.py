@@ -9,7 +9,7 @@ from trainer import Trainer
 from utils.config_utils import Config
 
 
-def setup(teacher_model_path=None):
+def setup(t_model_path=None):
     models_cfg = Config()
     models_cfg.load_config(os.path.join(os.path.dirname(__file__), 'config/config.ini'))
     if models_cfg.items.model_type == 'vit':
@@ -27,8 +27,8 @@ def setup(teacher_model_path=None):
     else:
         if models_cfg.items.teacher == 'resnet50':
             teacher = ResNet50()
-            if teacher_model_path is not None:
-                teacher.load_state_dict(torch.load(teacher_model_path, map_location={'cuda:0': 'cuda:1'}))
+            if t_model_path is not None:
+                teacher.load_state_dict(torch.load(t_model_path, map_location={'cuda:0': 'cuda:1'}))
         elif models_cfg.items.teacher == 'resnet101':
             teacher = None
         else:
@@ -66,13 +66,14 @@ def inference(models, models_path, image_path):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    teacher_model_path = '/home/dell/PycharmProjects/ViT/checkpoint/resnet50_ckpt.pth'
+    t_model_path = '/home/dell/PycharmProjects/ViT/checkpoint/resnet50_ckpt.pth'
     model_path = '/home/dell/PycharmProjects/ViT/checkpoint/vit_teacher/vit_teacher_chkpt.bin'
+    # model_path = '/home/dell/PycharmProjects/ViT/checkpoint/vit_fine_tuning/vit_fine_tuning_chkpt.bin'
     img_path = '/home/dell/PycharmProjects/ViT/data/demo/cat.jpeg'
 
-    model, cfg = setup(teacher_model_path)
+    model, cfg = setup(t_model_path)
 
     trainer_name = "vit_teacher"
-    run_vit(trainer_name, model, cfg)
+    # run_vit(trainer_name, model, cfg)
 
     inference(model, model_path, img_path)

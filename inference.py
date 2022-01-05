@@ -58,7 +58,14 @@ class Cifar10Inference(object):
         v = joint_attentions[-1]
 
         grid_size = int(np.sqrt(augmentation_att_matrix.size(-1)))
-        attention_mask = v[0, 1:].reshape(grid_size, grid_size).detach().cpu().numpy()
+
+        if self.cfg.items.model_type == 'vit':
+            attention_mask = v[0, 1:].reshape(grid_size, grid_size).detach().cpu().numpy()
+        elif self.cfg.items.model_type == 'deit':
+            attention_mask = v[0, 2:].reshape(grid_size, grid_size).detach().cpu().numpy()
+        else:  # hold place for other model.
+            attention_mask = v[0, 1:].reshape(grid_size, grid_size).detach().cpu().numpy()
+
         attention_mask = cv2.resize(attention_mask / attention_mask.max(), im.size)[..., np.newaxis]
         result = (attention_mask * im).astype("uint8")
 
@@ -126,14 +133,14 @@ class Cifar10Inference(object):
             gray_scale = gray_scale / feature_map.shape[0]
             processed.append(gray_scale.data.cpu().numpy())
 
-        fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, figsize=(30,50))
+        fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, figsize=(30, 50))
 
         ax1.set_title('Original')
         ax2.set_title('First Feature Map')
         ax3.set_title('Last Feature Map')
         _ = ax1.imshow(im)
         _ = ax2.imshow(processed[0])
-        _ = ax3.imshow(processed[len(processed)-1])
+        _ = ax3.imshow(processed[len(processed) - 1])
 
         plt.show()
 
