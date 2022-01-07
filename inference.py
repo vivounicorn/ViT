@@ -62,6 +62,9 @@ class Cifar10Inference(object):
         if self.cfg.items.model_type == 'vit':
             attention_mask = v[0, 1:].reshape(grid_size, grid_size).detach().cpu().numpy()
         elif self.cfg.items.model_type == 'deit':
+            print("cosine similarity between class token and distillation token:",
+                  torch.cosine_similarity(self.model.transformer.embeddings.class_token[0],
+                                          self.model.transformer.embeddings.distillation_token[0]))
             attention_mask = v[0, 2:].reshape(grid_size, grid_size).detach().cpu().numpy()
         else:  # hold place for other model.
             attention_mask = v[0, 1:].reshape(grid_size, grid_size).detach().cpu().numpy()

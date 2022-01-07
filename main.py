@@ -74,6 +74,5 @@ if __name__ == '__main__':
     model, cfg = setup(t_model_path)
 
     trainer_name = "vit_teacher"
-    # run_vit(trainer_name, model, cfg)
-
+    run_vit(trainer_name, model, cfg)
     inference(model, model_path, img_path)
